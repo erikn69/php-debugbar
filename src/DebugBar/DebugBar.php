@@ -11,6 +11,7 @@
 namespace DebugBar;
 
 use ArrayAccess;
+use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\Storage\StorageInterface;
 
@@ -48,6 +49,8 @@ class DebugBar implements ArrayAccess
 
     protected $stackAlwaysUseSessionStorage = false;
 
+    protected $editorTemplateArgs = [];
+
     /**
      * Adds a data collector
      *
@@ -63,6 +66,10 @@ class DebugBar implements ArrayAccess
         }
         if (isset($this->collectors[$collector->getName()])) {
             throw new DebugBarException("'{$collector->getName()}' is already a registered collector");
+        }
+        if (! empty($this->editorTemplateArgs) && is_a($collector, DataCollector)) {
+            $collector->addXdebugReplacements($this->editorTemplateArgs[1]);
+            $collector->setEditorLinkTemplate($this->editorTemplateArgs[0], $this->editorTemplateArgs[2]);
         }
         $this->collectors[$collector->getName()] = $collector;
         return $this;
