@@ -33,12 +33,21 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
     // may support yet - so return false by default for now.
     protected $useHtmlVarDumper = false;
 
+    /** @var bool */
+    protected $collectFile = false;
+
     /**
      * @param string $name
      */
     public function __construct($name = 'messages')
     {
         $this->name = $name;
+    }
+
+    /** @return void */
+    public function collectFileTrace()
+    {
+        $this->collectFile = true;
     }
 
     /**
@@ -134,12 +143,30 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
             }
             $isString = false;
         }
+        $stackItem = null;
+        if ($this->collectFile) {
+            $stacktrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+            $stackItem = $stacktrace[0];
+            foreach ($stacktrace as $trace) {
+                if (
+                    is_subclass_of($trace['class'], MessagesAggregateInterface::class)
+                    || is_subclass_of($trace['class'], DataCollectorInterface::class)
+                    || is_subclass_of($trace['class'], \DebugBar\DebugBar::class)
+                ) {
+                    continue;
+                }
+                $stackItem = $trace;
+                break;
+            }
+        }
         $this->messages[] = array(
             'message' => $messageText,
             'message_html' => $messageHtml,
             'is_string' => $isString,
             'label' => $label,
-            'time' => microtime(true)
+            'time' => microtime(true),
+            'file_name' => $stackItem ? $stackItem['file'] : null,
+            'file_line' => $stackItem ? $stackItem['line'] : null,
         );
     }
 
@@ -150,6 +177,10 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
      */
     public function aggregate(MessagesAggregateInterface $messages)
     {
+        if ($this->collectFile && method_exists($messages, 'collectFileTrace')) {
+            $messages->collectFileTrace();
+        }
+
         $this->aggregates[] = $messages;
     }
 
