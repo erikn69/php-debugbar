@@ -12,6 +12,7 @@ namespace DebugBar\DataCollector;
 
 use Psr\Log\AbstractLogger;
 use DebugBar\DataFormatter\HasDataFormatter;
+use DebugBar\DataFormatter\HasXdebugLinkFormatter;
 
 /**
  * Provides a way to log messages
@@ -19,6 +20,7 @@ use DebugBar\DataFormatter\HasDataFormatter;
 class MessagesCollector extends AbstractLogger implements DataCollectorInterface, MessagesAggregateInterface, Renderable, AssetProvider
 {
     use HasDataFormatter;
+    use HasXdebugLinkFormatter;
 
     protected $name;
 
@@ -38,9 +40,9 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
     }
 
     /** @return void */
-    public function collectFileTrace()
+    public function collectFileTrace($enabled = true)
     {
-        $this->collectFile = true;
+        $this->collectFile = $enabled;
     }
 
     /**
@@ -63,31 +65,36 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
             }
             $isString = false;
         }
-        $stackItem = null;
+
+        $stackItem = [];
         if ($this->collectFile) {
             $stacktrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
             $stackItem = $stacktrace[0];
             foreach ($stacktrace as $trace) {
-                if (
-                    is_subclass_of($trace['class'], MessagesAggregateInterface::class)
-                    || is_subclass_of($trace['class'], DataCollectorInterface::class)
-                    || is_subclass_of($trace['class'], \DebugBar\DebugBar::class)
-                ) {
+                if (strpos($trace['file'], '/vendor/') !== false) {
                     continue;
                 }
+
                 $stackItem = $trace;
                 break;
             }
         }
-        $this->messages[] = array(
+
+        if (!empty($stackItem['file'] ?? null)) {
+            $stackItem = [
+                'file_name' => $this->normalizeFilePath($stackItem['file']),
+                'file_line' => $stackItem['line'],
+                'xdebug_link' => $this->getXdebugLink($stackItem['file'], $stackItem['line']),
+            ];
+        }
+
+        $this->messages[] = array_merge($stackItem, array(
             'message' => $messageText,
             'message_html' => $messageHtml,
             'is_string' => $isString,
             'label' => $label,
             'time' => microtime(true),
-            'file_name' => $stackItem ? $stackItem['file'] : null,
-            'file_line' => $stackItem ? $stackItem['line'] : null,
-        );
+        ));
     }
 
     /**

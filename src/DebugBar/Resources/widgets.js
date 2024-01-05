@@ -328,9 +328,18 @@ if (typeof(PhpDebugBar) == 'undefined') {
                     }
                 }
                 if (value.file_name) {
-                    $('<span />').addClass(csscls('label-called-from')).attr('title', value.file_name)
+                    var link = $('<a />').addClass(csscls('label-called-from')).attr('title', value.file_name)
                         .text(value.file_name + ':' + value.file_line)
                         .prependTo(li);
+                    if (value.xdebug_link) {
+                        if (value.xdebug_link.ajax) {
+                            link.on('click', function () {
+                                $.ajax(value.xdebug_link.url);
+                            });
+                        } else {
+                            link.attr('href', value.xdebug_link.url);
+                        }
+                    }
                 }
                 if (value.collector) {
                     $('<span />').addClass(csscls('collector')).text(value.collector).prependTo(li);
