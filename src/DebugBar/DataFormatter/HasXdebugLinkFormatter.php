@@ -28,7 +28,7 @@ trait HasXdebugLinkFormatter
             return '';
         }
 
-        if (file_exists($file)) {
+        if (@file_exists($file)) {
             $file = realpath($file);
         }
 
@@ -59,7 +59,7 @@ trait HasXdebugLinkFormatter
             return null;
         }
 
-        if (file_exists($file)) {
+        if (@file_exists($file)) {
             $file = realpath($file);
         }
 
