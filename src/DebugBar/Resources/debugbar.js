@@ -486,12 +486,12 @@ if (typeof(PhpDebugBar) == 'undefined') {
          * @this {DebugBar}
          */
         render: function() {
+            this.$el.css('display', 'block')
             if (this.isIframe) {
                 this.$el.hide();
             }
 
-            var self = this;
-            this.$el.css('display', 'block');
+            var self = this;;
             this.$el.appendTo('body');
             this.$dragCapture = $('<div />').addClass(csscls('drag-capture')).appendTo(this.$el);
             this.$resizehdle = $('<div />').addClass(csscls('resize-handle')).appendTo(this.$el);
