@@ -18,7 +18,7 @@ class ObjectCountCollector extends DataCollector implements DataCollectorInterfa
     /** @var int */
     protected $classCount = 0;
     /** @var array */
-    protected $classList = [];
+    protected $classList = array();
 
     /**
      * @param string $name
@@ -39,7 +39,7 @@ class ObjectCountCollector extends DataCollector implements DataCollectorInterfa
             $class = get_class($class);
         }
 
-        $this->classList[$class] = ($this->classList[$class] ?? 0) + $count;
+        $this->classList[$class] = (isset($this->classList[$class])?$this->classList[$class]:0) + $count;
         $this->classCount += $count;
     }
 
@@ -51,24 +51,24 @@ class ObjectCountCollector extends DataCollector implements DataCollectorInterfa
         arsort($this->classList, SORT_NUMERIC);
 
         if (! $this->getXdebugLinkTemplate()) {
-            return ['data' => $this->classList, 'count' => $this->classCount, 'is_counter' => true];
+            return array('data' => $this->classList, 'count' => $this->classCount, 'is_counter' => true);
         }
 
-        $data = [];
+        $data = array();
         foreach ($this->classList as $class => $count) {
             $reflector = class_exists($class) ? new \ReflectionClass($class) : null;
 
             if ($reflector && $link = $this->getXdebugLink($reflector->getFileName())) {
-                $data[$class] = [
+                $data[$class] = array(
                     'value' => $count,
                     'xdebug_link' => $link,
-                ];
+                );
             } else {
                 $data[$class] = $count;
             }
         }
 
-        return ['data' => $data, 'count' => $this->classCount, 'is_counter' => true];
+        return array('data' => $data, 'count' => $this->classCount, 'is_counter' => true);
     }
 
     /**
@@ -86,17 +86,17 @@ class ObjectCountCollector extends DataCollector implements DataCollectorInterfa
     {
         $name = $this->getName();
 
-        return [
-            "$name" => [
+        return array(
+            "$name" => array(
                 'icon' => $this->icon,
                 'widget' => 'PhpDebugBar.Widgets.HtmlVariableListWidget',
                 'map' => "$name.data",
                 'default' => '{}'
-            ],
-            "$name:badge" => [
+            ),
+            "$name:badge" => array(
                 'map' => "$name.count",
                 'default' => 0
-            ]
-        ];
+            )
+        );
     }
 }

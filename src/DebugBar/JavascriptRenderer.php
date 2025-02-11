@@ -850,7 +850,7 @@ class JavascriptRenderer
         $cssFiles = array_unique($cssFiles);
         $jsFiles = array_unique($jsFiles);
 
-        return $this->filterAssetArray(array($cssFiles, $jsFiles, $inlineCss, $inlineJs, $inlineHead), $type ?? '');
+        return $this->filterAssetArray(array($cssFiles, $jsFiles, $inlineCss, $inlineJs, $inlineHead), is_null($type)?'':$type);
     }
 
     /**
@@ -893,7 +893,7 @@ class JavascriptRenderer
             return $uris;
         }
 
-        $uri = $uri ?? '';
+        $uri = is_null($uri) ? '' : $uri;
 
         if (substr($uri, 0, 1) === '/' || preg_match('/^([a-zA-Z]+:\/\/|[a-zA-Z]:\/|[a-zA-Z]:\\\)/', $uri)) {
             return $uri;
@@ -911,7 +911,7 @@ class JavascriptRenderer
     protected function filterAssetArray($array, $type = '')
     {
         $types = array('css', 'js', 'inline_css', 'inline_js', 'inline_head');
-        $typeIndex = array_search(strtolower($type ?? ''), $types);
+        $typeIndex = array_search(strtolower(is_null($type)?'':$type), $types);
         return $typeIndex !== false ? $array[$typeIndex] : $array;
     }
 
@@ -1218,7 +1218,7 @@ class JavascriptRenderer
 
     protected function getInitializeOptions()
     {
-        $options = [];
+        $options = array();
 
         if ($this->theme !== null) {
             $options['theme'] = $this->theme;
@@ -1318,7 +1318,7 @@ class JavascriptRenderer
     {
         $js = sprintf("%s.addDataSet(%s, \"%s\"%s);\n",
             $this->variableName,
-            json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_INVALID_UTF8_IGNORE),
+            json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP),
             $requestId,
             $suffix ? ", " . json_encode($suffix) : ''
         );

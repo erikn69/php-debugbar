@@ -34,7 +34,7 @@ class TracedStatement
      * @param array $params
      * @param null|string $preparedId
      */
-    public function __construct(string $sql, array $params = [], ?string $preparedId = null)
+    public function __construct($sql, $params = array(), $preparedId = null)
     {
         $this->sql = $sql;
         $this->parameters = $this->checkParameters($params);
@@ -45,7 +45,7 @@ class TracedStatement
      * @param null $startTime
      * @param null $startMemory
      */
-    public function start($startTime = null, $startMemory = null) : void
+    public function start($startTime = null, $startMemory = null)
     {
         $this->startTime = $startTime ?: microtime(true);
         $this->startMemory = $startMemory ?: memory_get_usage(false);
@@ -57,14 +57,14 @@ class TracedStatement
      * @param float $endTime
      * @param int $endMemory
      */
-    public function end(?\Exception $exception = null, int $rowCount = 0, ?float $endTime = null, ?int $endMemory = null) : void
+    public function end($exception = null, $rowCount =null, $endTime = null, $endMemory = null)
     {
         $this->endTime = $endTime ?: microtime(true);
         $this->duration = $this->endTime - $this->startTime;
         $this->endMemory = $endMemory ?: memory_get_usage(false);
         $this->memoryDelta = $this->endMemory - $this->startMemory;
         $this->exception = $exception;
-        $this->rowCount = $rowCount;
+        $this->rowCount = is_null($rowCount) ? 0 : $rowCount;
     }
 
     /**
@@ -73,10 +73,10 @@ class TracedStatement
      * @param array $params
      * @return array
      */
-    public function checkParameters(array $params) : array
+    public function checkParameters(array $params)
     {
         foreach ($params as &$param) {
-            if (!mb_check_encoding($param ?? '', 'UTF-8')) {
+            if (!mb_check_encoding(is_null($param)?'':$param, 'UTF-8')) {
                 $param = '[BINARY DATA]';
             }
         }
@@ -88,7 +88,7 @@ class TracedStatement
      *
      * @return string
      */
-    public function getSql() : string
+    public function getSql()
     {
         return $this->sql;
     }
@@ -99,8 +99,9 @@ class TracedStatement
      * @param string $quotationChar
      * @return string
      */
-    public function getSqlWithParams(string $quotationChar = '<>') : string
+    public function getSqlWithParams(string $quotationChar = null)
     {
+        if(is_null($quotationChar))$quotationChar='<>';
         if (($l = strlen($quotationChar)) > 1) {
             $quoteLeft = substr($quotationChar, 0, $l / 2);
             $quoteRight = substr($quotationChar, $l / 2);
@@ -110,7 +111,7 @@ class TracedStatement
 
         $sql = $this->sql;
 
-        $cleanBackRefCharMap = ['%' => '%%', '$' => '$%', '\\' => '\\%'];
+        $cleanBackRefCharMap = array('%' => '%%', '$' => '$%', '\\' => '\\%');
 
         foreach ($this->parameters as $k => $v) {
 
@@ -147,7 +148,7 @@ class TracedStatement
      *
      * @return int
      */
-    public function getRowCount() : int
+    public function getRowCount()
     {
         return $this->rowCount;
     }
@@ -157,9 +158,9 @@ class TracedStatement
      *
      * @return array
      */
-    public function getParameters() : array
+    public function getParameters()
     {
-        $params = [];
+        $params = array();
         foreach ($this->parameters as $name => $param) {
             $params[$name] = htmlentities($param?:"", ENT_QUOTES, 'UTF-8', false);
         }
@@ -171,7 +172,7 @@ class TracedStatement
      *
      * @return null|string
      */
-    public function getPreparedId() : ?string
+    public function getPreparedId()
     {
         return $this->preparedId;
     }
@@ -181,7 +182,7 @@ class TracedStatement
      *
      * @return boolean
      */
-    public function isPrepared() : bool
+    public function isPrepared()
     {
         return $this->preparedId !== null;
     }
@@ -189,7 +190,7 @@ class TracedStatement
     /**
      * @return float
      */
-    public function getStartTime() : float
+    public function getStartTime()
     {
         return $this->startTime;
     }
@@ -197,7 +198,7 @@ class TracedStatement
     /**
      * @return float
      */
-    public function getEndTime() : float
+    public function getEndTime()
     {
         return $this->endTime;
     }
@@ -207,7 +208,7 @@ class TracedStatement
      *
      * @return float
      */
-    public function getDuration() : float
+    public function getDuration()
     {
         return $this->duration;
     }
@@ -215,7 +216,7 @@ class TracedStatement
     /**
      * @return int
      */
-    public function getStartMemory() : int
+    public function getStartMemory()
     {
         return $this->startMemory;
     }
@@ -223,7 +224,7 @@ class TracedStatement
     /**
      * @return int
      */
-    public function getEndMemory() : int
+    public function getEndMemory()
     {
         return $this->endMemory;
     }
@@ -233,7 +234,7 @@ class TracedStatement
      *
      * @return int
      */
-    public function getMemoryUsage() : int
+    public function getMemoryUsage()
     {
         return $this->memoryDelta;
     }
@@ -243,7 +244,7 @@ class TracedStatement
      *
      * @return boolean
      */
-    public function isSuccess() : bool
+    public function isSuccess()
     {
         return $this->exception === null;
     }
@@ -253,7 +254,7 @@ class TracedStatement
      *
      * @return \Exception
      */
-    public function getException() : \Exception
+    public function getException()
 	{
         return $this->exception;
     }
@@ -273,7 +274,7 @@ class TracedStatement
      *
      * @return string
      */
-    public function getErrorMessage() : string
+    public function getErrorMessage()
     {
         return $this->exception !== null ? $this->exception->getMessage() : '';
     }

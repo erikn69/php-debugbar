@@ -13,7 +13,7 @@ $debugbarRenderer = $debugbar->getJavascriptRenderer()
                              ->setAjaxHandlerEnableTab(true)
                              ->setHideEmptyTabs(true)
                              ->setEnableJqueryNoConflict(false)
-                             ->setTheme($_GET['theme'] ?? 'auto');
+                             ->setTheme(isset($_GET['theme']) ? $_GET['theme'] : 'auto');
 
 //
 // create a writable profiles folder in the demo directory to uncomment the following lines
@@ -22,7 +22,7 @@ $debugbarRenderer = $debugbar->getJavascriptRenderer()
 // $debugbar->setStorage(new DebugBar\Storage\RedisStorage(new Predis\Client()));
 // $debugbarRenderer->setOpenHandlerUrl('open.php');
 
-function render_demo_page(?Closure $callback = null)
+function render_demo_page($callback = null)
 {
     global $debugbarRenderer;
 ?>

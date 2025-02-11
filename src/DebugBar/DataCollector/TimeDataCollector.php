@@ -137,6 +137,7 @@ class TimeDataCollector extends DataCollector implements Renderable
      */
     public function addMeasure($label, $start, $end, $params = array(), $collector = null, $group = null)
     {
+        $memory = 0;
         if (isset($params['memoryUsage'])) {
             $memory = $this->memoryMeasure ? $params['memoryUsage'] : 0;
             unset($params['memoryUsage']);
@@ -150,8 +151,8 @@ class TimeDataCollector extends DataCollector implements Renderable
             'relative_end' => $end - $this->requestEndTime,
             'duration' => $end - $start,
             'duration_str' => $this->getDataFormatter()->formatDuration($end - $start),
-            'memory' => $memory ?? 0,
-            'memory_str' => $this->getDataFormatter()->formatBytes($memory ?? 0),
+            'memory' => $memory,
+            'memory_str' => $this->getDataFormatter()->formatBytes($memory),
             'params' => $params,
             'collector' => $collector,
             'group' => $group,

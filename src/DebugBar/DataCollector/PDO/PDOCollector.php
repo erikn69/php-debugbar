@@ -26,7 +26,7 @@ class PDOCollector extends DataCollector implements Renderable, AssetProvider
      * @param \PDO $pdo
      * @param TimeDataCollector $timeCollector
      */
-    public function __construct(?\PDO $pdo = null, ?TimeDataCollector $timeCollector = null)
+    public function __construct(\PDO $pdo = null, TimeDataCollector $timeCollector = null)
     {
         $this->timeCollector = $timeCollector;
         if ($pdo !== null) {
@@ -138,7 +138,7 @@ class PDOCollector extends DataCollector implements Renderable, AssetProvider
      * @param string|null $connectionName the pdo connection (eg default | read | write)
      * @return array
      */
-    protected function collectPDO(TraceablePDO $pdo, ?TimeDataCollector $timeCollector = null, $connectionName = null)
+    protected function collectPDO(TraceablePDO $pdo, TimeDataCollector $timeCollector = null, $connectionName = null)
     {
         if (empty($connectionName) || $connectionName == 'default') {
             $connectionName = 'pdo';
@@ -178,10 +178,10 @@ class PDOCollector extends DataCollector implements Renderable, AssetProvider
                 }
 
                 $width_percent = $stmt['duration'] / $totalTime * 100;
-                $stmts[$i] = array_merge($stmt, [
+                $stmts[$i] = array_merge($stmt, array(
                     'start_percent' => round($start_percent, 3),
                     'width_percent' => round($width_percent, 3),
-                ]);
+                ));
                 $start_percent += $width_percent;
             }
         }
