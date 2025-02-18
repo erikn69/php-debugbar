@@ -30,10 +30,10 @@ class FileStorage implements StorageInterface
      */
     public function save($id, $data)
     {
-        if (!file_exists($this->dirname)) {
-            mkdir($this->dirname, 0777, true);
+        if (!@file_exists($this->dirname)) {
+            @mkdir($this->dirname, 0777, true);
         }
-        file_put_contents($this->makeFilename($id), json_encode($data));
+        @file_put_contents($this->makeFilename($id), json_encode($data));
     }
 
     /**
@@ -41,7 +41,7 @@ class FileStorage implements StorageInterface
      */
     public function get($id)
     {
-        return json_decode(file_get_contents($this->makeFilename($id)), true);
+        return json_decode(@file_get_contents($this->makeFilename($id)), true);
     }
 
     /**

@@ -82,18 +82,6 @@
                         })
                     ).appendTo(li);
                 }
-                if (stmt.duration_str) {
-                    $('<span title="Duration" />').addClass(csscls('duration')).text(stmt.duration_str).appendTo(li);
-                }
-                if (stmt.memory_str) {
-                    $('<span title="Memory usage" />').addClass(csscls('memory')).text(stmt.memory_str).appendTo(li);
-                }
-                if (typeof(stmt.row_count) != 'undefined') {
-                    $('<span title="Row count" />').addClass(csscls('row-count')).text(stmt.row_count).appendTo(li);
-                }
-                if (typeof(stmt.stmt_id) != 'undefined' && stmt.stmt_id) {
-                    $('<span title="Prepared statement ID" />').addClass(csscls('stmt-id')).text(stmt.stmt_id).appendTo(li);
-                }
                 if (stmt.connection) {
                     $('<span title="Connection" />').addClass(csscls('database')).text(stmt.connection).appendTo(li);
                     li.attr("connection",stmt.connection);
@@ -110,6 +98,18 @@
                             self.$list.$el.css("margin-bottom","20px");
                         }
                     }
+                }
+                if (stmt.duration_str) {
+                    $('<span title="Duration" />').addClass(csscls('duration')).text(stmt.duration_str).appendTo(li);
+                }
+                if (stmt.memory_str) {
+                    $('<span title="Memory usage" />').addClass(csscls('memory')).text(stmt.memory_str).appendTo(li);
+                }
+                if (typeof(stmt.row_count) != 'undefined') {
+                    $('<span title="Row count" />').addClass(csscls('row-count')).text(stmt.row_count).appendTo(li);
+                }
+                if (typeof(stmt.stmt_id) != 'undefined' && stmt.stmt_id) {
+                    $('<span title="Prepared statement ID" />').addClass(csscls('stmt-id')).text(stmt.stmt_id).appendTo(li);
                 }
                 if ((!stmt.type || stmt.type === 'query')) {
                     if (window.sqlFormatter) {
@@ -145,12 +145,19 @@
                     var header = $('<span title="Filename" />').addClass(csscls('filename')).text(stmt.xdebug_link.filename + ( stmt.xdebug_link.line ? "#" + stmt.xdebug_link.line : ''));
                     $('<a href="' + stmt.xdebug_link.url + '"></a>').on('click', function () {
                         event.stopPropagation();
-                        if (stmt.xdebug_link.ajax) {                            
+                        if (stmt.xdebug_link.ajax) {
                             fetch(stmt.xdebug_link.url);
                             event.preventDefault();
                         }
                     }).addClass(csscls('editor-link')).appendTo(header);
                     header.appendTo(li);
+                }else if (stmt.filename) {
+                    $('<span title="Filename" />').addClass(csscls('filename')).text(stmt.filename).appendTo(li);
+                }
+                if (stmt.type === 'transaction') {
+                    $('<strong />').addClass(csscls('sql')).addClass(csscls('name')).addClass(stmt.comment?'hljs-comment':'hljs-none').text(stmt.sql).appendTo(li);
+                } else {
+                    $('<code />').addClass(csscls('sql')).html(PhpDebugBar.Widgets.highlight(stmt.sql, 'sql')).appendTo(li);
                 }
                 if (stmt.type === 'transaction') {
                     $('<strong />').addClass(csscls('sql')).addClass(csscls('name')).text(stmt.sql).appendTo(li);

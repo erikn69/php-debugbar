@@ -11,6 +11,8 @@
 namespace DebugBar\DataCollector;
 
 use DebugBar\DataFormatter\DataFormatter;
+use DebugBar\DataFormatter\DebugBarVarDumper;
+use DebugBar\DataFormatter\DataFormatterInterface;
 
 /**
  * Abstract class for data collectors

@@ -162,7 +162,8 @@ class DataFormatter implements DataFormatterInterface
             $parts['namespace'] = $source['namespace'] . '::';
         }
 
-        $parts['name'] = $short ? basename($source['name']) : $source['name'];
+        $name = isset($source['name']) ? $source['name'] : (isset($source['file']) ? $source['file'] : '');
+        $parts['name'] = $short ? basename($name) : $name;
         $parts['line'] = ':' . (isset($source['line']) ? $source['line'] : '1');
 
         return implode($parts);

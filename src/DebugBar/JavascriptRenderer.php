@@ -107,7 +107,7 @@ class JavascriptRenderer
         $this->basePath = $basePath;
 
         if ($baseUrl === null) {
-            if ($basePath && str_contains($basePath, '/vendor/')) {
+            if ($basePath && strpos($basePath, '/vendor/') !== false) {
                 $baseUrl = strstr($basePath, '/vendor/');
             } else {
                 $baseUrl = '/vendor/php-debugbar/php-debugbar/src/DebugBar/Resources';
@@ -1258,7 +1258,7 @@ class JavascriptRenderer
 
         // Allow widgets to be sorted by order if specified
         uasort($controls, function(array $control){
-            return $control['order'] ?? 0;
+            return isset($control['order']) ? $control['order'] : 0;
         });
 
         foreach (array_filter($controls) as $name => $options) {

@@ -20,10 +20,9 @@ class TempFileStorage extends FileStorage
      */
     public function get($id)
     {
-        $data = parent::get($id);
-        try {
-            unlink($this->makeFilename($id));
-        } catch(\Throwable $e){}
+        $file = $this->makeFilename($id);
+        $data = json_decode(@file_get_contents($file), true);
+        @unlink($file);
 
         return $data;
     }

@@ -10,14 +10,13 @@
 
 namespace DebugBar\DataCollector;
 
-use Psr\Log\AbstractLogger;
-use DebugBar\DataCollector\DataCollector;
-use DebugBar\DataFormatter\DataFormatter;
+use DebugBar\DataFormatter\DebugBarVarDumper;
+use DebugBar\DataFormatter\DataFormatterInterface;
 
 /**
  * Provides a way to log messages
  */
-class MessagesCollector extends AbstractLogger implements DataCollectorInterface, MessagesAggregateInterface, Renderable, AssetProvider
+class MessagesCollector implements DataCollectorInterface, MessagesAggregateInterface, Renderable, AssetProvider
 {
     protected $name;
 
@@ -27,6 +26,12 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
 
     /** @var bool */
     protected $collectFile = false;
+    protected $backtraceExcludePaths = array(
+        '/debugbar/src/DebugBar/DataCollector',
+        '/DebugHelper.php',
+        '/DebugBar.php',
+        '/DATA/'
+    );
 
     /**
      * @param string $name
@@ -59,6 +64,25 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
     }
 
     /**
+     * Check if the given file is to be excluded from analysis
+     *
+     * @param string $file
+     * @return bool
+     */
+    protected function fileIsInExcludedPath($file)
+    {
+        $normalizedPath = str_replace('\\', '/', $file);
+
+        foreach ($this->backtraceExcludePaths as $excludedPath) {
+            if (strpos($normalizedPath, $excludedPath) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Adds a message
      *
      * A message can be anything from an object to a string
@@ -81,12 +105,12 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
             $messageHtml = $this->cleanHtml($message);
         }
 
-        $stackItem = array();
+        $stackItem = null;
         if ($this->collectFile) {
-            $stacktrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+            $stacktrace = array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 0, 40);
             $stackItem = $stacktrace[0];
             foreach ($stacktrace as $trace) {
-                if (!isset($trace['file']) || strpos($trace['file'], '/vendor/') !== false) {
+                if (!isset($trace['file']) || $this->fileIsInExcludedPath($trace['file'])) {
                     continue;
                 }
 
@@ -101,6 +125,7 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
             'is_string' => $isString,
             'label' => $label,
             'time' => microtime(true),
+            'filename' => !empty($stackItem) ? basename($this->getDataFormatter()->formatSource($stackItem)) : null,
             'xdebug_link' => $stackItem ? $this->getXdebugLink($stackItem['file'], isset($stackItem['line'])?$stackItem['line']:null) : null,
         );
     }
@@ -150,20 +175,6 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
         });
 
         return $messages;
-    }
-
-    /**
-     * @param $level
-     * @param $message
-     * @param array $context
-     */
-    public function log($level, $message, array $context = array())
-    {
-        // For string messages, interpolate the context following PSR-3
-        if (is_string($message)) {
-            $message = $this->interpolate($message, $context);
-        }
-        $this->addMessage($message, $level);
     }
 
     /**
@@ -257,8 +268,8 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
             )
         );
     }
-    
-    
+
+
     // The HTML var dumper requires debug bar users to support the new inline assets, which not all
     // may support yet - so return false by default for now.
     protected $useHtmlVarDumper = false;
@@ -406,8 +417,8 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
     {
         return $this->getDataFormatter()->formatBytes($size, $precision);
     }
-    
-    
+
+
     protected $xdebugLinkTemplate = '';
     protected $xdebugShouldUseAjax = false;
     protected $xdebugReplacements = array();
@@ -591,5 +602,143 @@ class MessagesCollector extends AbstractLogger implements DataCollectorInterface
     public function setXdebugReplacement($serverPath, $replacement)
     {
         $this->xdebugReplacements[$serverPath] = $replacement;
+    }
+
+    const EMERGENCY = 'emergency';
+    const ALERT     = 'alert';
+    const CRITICAL  = 'critical';
+    const ERROR     = 'error';
+    const WARNING   = 'warning';
+    const NOTICE    = 'notice';
+    const INFO      = 'info';
+    const DEBUG     = 'debug';
+
+    /**
+     * @param $level
+     * @param $message
+     * @param array $context
+     */
+    public function log($level, $message, array $context = array())
+    {
+        // For string messages, interpolate the context following PSR-3
+        if (is_string($message)) {
+            $message = $this->interpolate($message, $context);
+        }
+        $this->addMessage($message, $level);
+    }
+
+    /**
+     * System is unusable.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function emergency($message, array $context = array())
+    {
+        $this->log(self::EMERGENCY, $message, $context);
+    }
+
+    /**
+     * Action must be taken immediately.
+     *
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function alert($message, array $context = array())
+    {
+        $this->log(self::ALERT, $message, $context);
+    }
+
+    /**
+     * Critical conditions.
+     *
+     * Example: Application component unavailable, unexpected exception.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function critical($message, array $context = array())
+    {
+        $this->log(self::CRITICAL, $message, $context);
+    }
+
+    /**
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function error($message, array $context = array())
+    {
+        $this->log(self::ERROR, $message, $context);
+    }
+
+    /**
+     * Exceptional occurrences that are not errors.
+     *
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function warning($message, array $context = array())
+    {
+        $this->log(self::WARNING, $message, $context);
+    }
+
+    /**
+     * Normal but significant events.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function notice($message, array $context = array())
+    {
+        $this->log(self::NOTICE, $message, $context);
+    }
+
+    /**
+     * Interesting events.
+     *
+     * Example: User logs in, SQL logs.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function info($message, array $context = array())
+    {
+        $this->log(self::INFO, $message, $context);
+    }
+
+    /**
+     * Detailed debug information.
+     *
+     * @param string  $message
+     * @param mixed[] $context
+     *
+     * @return void
+     */
+    public function debug($message, array $context = array())
+    {
+        $this->log(self::DEBUG, $message, $context);
     }
 }
