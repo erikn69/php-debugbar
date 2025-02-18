@@ -103,4 +103,82 @@ class DataFormatter implements DataFormatterInterface
 
         return $parent . '@anonymous';
     }
+    
+    /**
+     * Removes extra spaces at the beginning and end of the SQL query and its lines.
+     *
+     * @param  string $sql
+     * @return string
+     */
+    public function formatSql($sql)
+    {
+        $sql = preg_replace("/\?(?=(?:[^'\\\']*'[^'\\']*')*[^'\\\']*$)(?:\?)/", '?', $sql);
+        $sql = trim(preg_replace("/\s*\n\s*/", "\n", $sql));
+
+        return $sql;
+    }
+
+    /**
+     * Check bindings for illegal (non UTF-8) strings, like Binary data.
+     *
+     * @param $bindings
+     * @return mixed
+     */
+    public function checkBindings($bindings)
+    {
+        foreach ($bindings as &$binding) {
+            if (is_string($binding) && !mb_check_encoding($binding, 'UTF-8')) {
+                $binding = '[BINARY DATA]';
+            }
+
+            if (is_array($binding)) {
+                $binding = $this->checkBindings($binding);
+                $binding = '[' . implode(',', $binding) . ']';
+            }
+
+            if (is_object($binding)) {
+                $binding =  json_encode($binding);
+            }
+        }
+
+        return $bindings;
+    }
+
+    /**
+     * Format a source object.
+     *
+     * @param  array|null  $source  If the backtrace is disabled, the $source will be null.
+     * @return string
+     */
+    public function formatSource($source, $short = false)
+    {
+        if (! is_array($source)) {
+            return '';
+        }
+
+        $parts = array();
+
+        if (!$short && isset($source['namespace'])) {
+            $parts['namespace'] = $source['namespace'] . '::';
+        }
+
+        $parts['name'] = $short ? basename($source['name']) : $source['name'];
+        $parts['line'] = ':' . (isset($source['line']) ? $source['line'] : '1');
+
+        return implode($parts);
+    }
+
+    /**
+     * Mimic mysql_real_escape_string
+     *
+     * @param string $value
+     * @return string
+     */
+    public function emulateQuote($value)
+    {
+        $search = array("\\",  "\x00", "\n",  "\r",  "'",  '"', "\x1a");
+        $replace = array("\\\\","\\0","\\n", "\\r", "\'", '\"', "\\Z");
+
+        return "'" . str_replace($search, $replace, (string) $value) . "'";
+    }
 }

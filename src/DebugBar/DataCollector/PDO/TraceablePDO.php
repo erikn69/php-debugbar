@@ -29,6 +29,7 @@ class TraceablePDO extends PDO
     * @link   http://php.net/manual/en/pdo.begintransaction.php
     * @return bool TRUE on success or FALSE on failure.
     */
+    #[\ReturnTypeWillChange]
     public function beginTransaction()
     {
         return $this->pdo->beginTransaction();
@@ -40,6 +41,7 @@ class TraceablePDO extends PDO
      * @link   http://php.net/manual/en/pdo.commit.php
      * @return bool TRUE on success or FALSE on failure.
      */
+    #[\ReturnTypeWillChange]
     public function commit()
     {
         return $this->pdo->commit();
@@ -63,6 +65,7 @@ class TraceablePDO extends PDO
      * @link   http://php.net/manual/en/pdo.errorinfo.php
      * @return array PDO::errorInfo returns an array of error information
      */
+    #[\ReturnTypeWillChange]
     public function errorInfo()
     {
         return $this->pdo->errorInfo();
@@ -104,6 +107,7 @@ class TraceablePDO extends PDO
      * @link   http://php.net/manual/en/pdo.intransaction.php
      * @return bool TRUE if a transaction is currently active, and FALSE if not.
      */
+    #[\ReturnTypeWillChange]
     public function inTransaction()
     {
         return $this->pdo->inTransaction();
@@ -151,7 +155,7 @@ class TraceablePDO extends PDO
      * failure.
      */
     #[\ReturnTypeWillChange]
-    public function query($statement, $fetchMode = null)
+    public function query($statement, $fetchMode = null, $fetchModeArgs = null)
     {
         return $this->profileCall('query', $statement, func_get_args());
     }
@@ -178,6 +182,7 @@ class TraceablePDO extends PDO
      * @link   http://php.net/manual/en/pdo.rollback.php
      * @return bool TRUE on success or FALSE on failure.
      */
+    #[\ReturnTypeWillChange]
     public function rollBack()
     {
         return $this->pdo->rollBack();
@@ -191,6 +196,7 @@ class TraceablePDO extends PDO
      * @param  mixed $value
      * @return bool TRUE on success or FALSE on failure.
      */
+    #[\ReturnTypeWillChange]
     public function setAttribute($attribute, $value)
     {
         return $this->pdo->setAttribute($attribute, $value);
