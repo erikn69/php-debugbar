@@ -258,14 +258,7 @@
         if (close) close.classList.toggle('sf-dump-hidden', !expanding);
     }
 
-    // This file runs again whenever an SPA navigation (Livewire wire:navigate, Turbo) re-evaluates the
-    // scripts in the new body, so each run replaces the previous run's listener. Two listeners would
-    // each toggle the same dump and cancel out, and the previous one would keep its run's lazyStore.
-    if (PhpDebugBar.varDumpClickListener) {
-        document.removeEventListener('click', PhpDebugBar.varDumpClickListener);
-    }
-
-    PhpDebugBar.varDumpClickListener = function (e) {
+    PhpDebugBar.varDumpClickListener = PhpDebugBar.varDumpClickListener || function (e) {
         const toggle = e.target.closest('a.sf-dump-toggle') || e.target.closest('.sf-dump-preview')?.previousElementSibling;
         if (!toggle) return;
 
